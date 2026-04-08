@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 
 # 1. Konfigurasi Tampilan Dashboard
-st.set_page_config(page_title="Dashboard Transaksi Excel", layout="wide")
+st.set_page_config(page_title="Dashboard Transaksi Minerapay & Orion", layout="wide")
 
-st.title("📊 Dashboard Analisis Transaksi")
+st.title("Dashboard Cek Transaksi Qris Minerapay & Orion")
 st.markdown("Silakan upload file Excel hasil export untuk memulai.")
 
 # 2. Fitur Upload File
