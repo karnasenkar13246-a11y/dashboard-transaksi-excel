@@ -24,17 +24,20 @@ if uploaded_file:
         # Memastikan hanya mengambil kolom yang ada di file
         df = df[[c for c in kolom_utama if c in df.columns]].copy()
 
-        # 3. Logika Membersihkan Remark & Filter Baris Kosong
+        # 3. Logika Membersihkan Remark (DIPERBAIKI AGAR TIDAK ERROR FLOAT)
         if 'remark' in df.columns:
-            # Bersihkan data awal
-            df['remark'] = df['remark'].astype(str).str.strip()
-            
-            # Ambil bagian sebelum || saja
-            df['remark_clean'] = df['remark'].apply(
-                lambda x: x.split('||')[0].strip() if '||' in x and x.lower() != 'nan' and x != '' else None
-            )
+            def proses_remark(val):
+                # Ubah ke string dan bersihkan spasi
+                txt = str(val).strip()
+                # Jika kosong, atau 'nan', atau tidak ada '||', kembalikan None untuk dibuang
+                if not txt or txt.lower() == 'nan' or '||' not in txt:
+                    return None
+                # Ambil bagian depan sebelum ||
+                return txt.split('||')[0].strip()
 
-            # Buang baris yang remark_clean nya kosong (Data tidak valid)
+            df['remark_clean'] = df['remark'].apply(proses_remark)
+
+            # Buang baris yang tidak memiliki remark_clean valid
             df = df.dropna(subset=['remark_clean'])
             df = df[df['remark_clean'] != ""]
 
@@ -45,7 +48,7 @@ if uploaded_file:
         all_status = df['status'].unique().tolist() if 'status' in df.columns else []
         selected_status = st.sidebar.multiselect("Pilih Status", all_status, default=all_status)
 
-        # Filter Remark (Hasil yang sudah dipotong dan dibersihkan)
+        # Filter Remark (Hasil yang sudah dipotong)
         all_remarks = sorted(df['remark_clean'].unique().tolist()) if 'remark_clean' in df.columns else []
         selected_remark = st.sidebar.multiselect("Pilih Remark (Prefix)", all_remarks, default=all_remarks)
 
@@ -60,13 +63,13 @@ if uploaded_file:
         with col1:
             st.metric("Total Transaksi", f"{len(df_filtered)}")
         with col2:
-            total_amt = df_filtered['amount'].sum() if 'amount' in df_filtered.columns else 0
+            total_amt = pd.to_numeric(df_filtered['amount'], errors='coerce').sum()
             st.metric("Total Amount", f"Rp {total_amt:,.0f}")
         with col3:
-            total_fee = df_filtered['fee'].sum() if 'fee' in df_filtered.columns else 0
+            total_fee = pd.to_numeric(df_filtered['fee'], errors='coerce').sum()
             st.metric("Total Fee", f"Rp {total_fee:,.0f}")
         with col4:
-            total_rev = df_filtered['revenue'].sum() if 'revenue' in df_filtered.columns else 0
+            total_rev = pd.to_numeric(df_filtered['revenue'], errors='coerce').sum()
             st.metric("Total Revenue", f"Rp {total_rev:,.0f}")
 
         st.divider()
@@ -92,6 +95,6 @@ if uploaded_file:
         st.download_button(label="📥 Download Data Hasil Filter (CSV)", data=csv, file_name='hasil_filter_dashboard.csv', mime='text/csv')
 
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Terjadi kesalahan saat memproses data: {e}")
 else:
     st.info("💡 Menunggu file diupload...")
