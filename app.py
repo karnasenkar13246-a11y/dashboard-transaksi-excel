@@ -22,7 +22,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BAGIAN ATAS: TULISAN QRIS WARNA-WARNI DI KIRI ---
+# --- BAGIAN ATAS: TULISAN QRIS DI KIRI ---
 # Q = Hijau (#E1261C), R = Hijau (#414042), IS = Hijau (#0054A6)
 st.markdown("""
     <div style='text-align: left; font-family: sans-serif; font-weight: 900; font-size: 50px; letter-spacing: -2px; margin-bottom: -10px;'>
