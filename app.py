@@ -23,7 +23,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- BAGIAN ATAS: TULISAN QRIS WARNA-WARNI DI KIRI ---
-# Q = Merah (#E1261C), R = Abu-abu (#414042), IS = Biru (#0054A6)
+# Q = Hijau (#E1261C), R = Hijau (#414042), IS = Hijau (#0054A6)
 st.markdown("""
     <div style='text-align: left; font-family: sans-serif; font-weight: 900; font-size: 50px; letter-spacing: -2px; margin-bottom: -10px;'>
         <span style='color: #E1261C;'>Q</span><span style='color: #414042;'>R</span><span style='color: #0054A6;'>IS</span>
