@@ -22,8 +22,13 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- BAGIAN ATAS: TULISAN QRIS ---
-st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>QRIS</h1>", unsafe_allow_html=True)
+# --- BAGIAN ATAS: TULISAN QRIS WARNA-WARNI DI KIRI ---
+# Q = Merah (#E1261C), R = Abu-abu (#414042), IS = Biru (#0054A6)
+st.markdown("""
+    <div style='text-align: left; font-family: sans-serif; font-weight: 900; font-size: 50px; letter-spacing: -2px; margin-bottom: -10px;'>
+        <span style='color: #E1261C;'>Q</span><span style='color: #414042;'>R</span><span style='color: #0054A6;'>IS</span>
+    </div>
+""", unsafe_allow_html=True)
 
 st.title("Dashboard Cek Transaksi Qris Minerapay & Orion")
 st.markdown("Silakan upload file Excel hasil export untuk memulai.")
@@ -33,7 +38,7 @@ uploaded_file = st.file_uploader("Upload File Excel (.xlsx)", type=["xlsx"])
 
 if uploaded_file:
     # --- TANDA PANAH MERAH SETELAH UPLOAD ---
-    st.markdown("<h3 style='color: red; text-align: center;'>⬆️ FILE BERHASIL DIUPLOAD ⬆️</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color: red; text-align: left;'>⬆️ FILE BERHASIL DIUPLOAD ⬆️</h3>", unsafe_allow_html=True)
     
     try:
         # Membaca data dari Excel
@@ -48,7 +53,7 @@ if uploaded_file:
         # Memastikan hanya mengambil kolom yang ada di file
         df = df[[c for c in kolom_utama if c in df.columns]].copy()
 
-        # 3. Logika Membersihkan Remark
+        # 3. Logika Membersihkan Remark (Kebal terhadap data float/kosong)
         if 'remark' in df.columns:
             def proses_remark(val):
                 txt = str(val).strip()
