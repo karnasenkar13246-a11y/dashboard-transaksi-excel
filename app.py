@@ -4,6 +4,27 @@ import pandas as pd
 # 1. Konfigurasi Tampilan Dashboard
 st.set_page_config(page_title="Dashboard Transaksi Minerapay & Orion", layout="wide")
 
+# --- CUSTOM CSS UNTUK WARNA TOMBOL HIJAU ---
+st.markdown("""
+    <style>
+    /* Mengubah warna tombol 'Browse files' menjadi Hijau */
+    div[data-testid="stFileUploader"] section button {
+        background-color: #28a745 !important;
+        color: white !important;
+        border-radius: 5px;
+        border: none;
+    }
+    /* Efek hover saat mouse di atas tombol */
+    div[data-testid="stFileUploader"] section button:hover {
+        background-color: #218838 !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# --- BAGIAN ATAS: TULISAN QRIS ---
+st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>QRIS</h1>", unsafe_allow_html=True)
+
 st.title("Dashboard Cek Transaksi Qris Minerapay & Orion")
 st.markdown("Silakan upload file Excel hasil export untuk memulai.")
 
@@ -11,6 +32,9 @@ st.markdown("Silakan upload file Excel hasil export untuk memulai.")
 uploaded_file = st.file_uploader("Upload File Excel (.xlsx)", type=["xlsx"])
 
 if uploaded_file:
+    # --- TANDA PANAH MERAH SETELAH UPLOAD ---
+    st.markdown("<h3 style='color: red; text-align: center;'>⬆️ FILE BERHASIL DIUPLOAD ⬆️</h3>", unsafe_allow_html=True)
+    
     try:
         # Membaca data dari Excel
         df = pd.read_excel(uploaded_file)
@@ -24,35 +48,27 @@ if uploaded_file:
         # Memastikan hanya mengambil kolom yang ada di file
         df = df[[c for c in kolom_utama if c in df.columns]].copy()
 
-        # 3. Logika Membersihkan Remark (DIPERBAIKI AGAR TIDAK ERROR FLOAT)
+        # 3. Logika Membersihkan Remark
         if 'remark' in df.columns:
             def proses_remark(val):
-                # Ubah ke string dan bersihkan spasi
                 txt = str(val).strip()
-                # Jika kosong, atau 'nan', atau tidak ada '||', kembalikan None untuk dibuang
                 if not txt or txt.lower() == 'nan' or '||' not in txt:
                     return None
-                # Ambil bagian depan sebelum ||
                 return txt.split('||')[0].strip()
 
             df['remark_clean'] = df['remark'].apply(proses_remark)
-
-            # Buang baris yang tidak memiliki remark_clean valid
             df = df.dropna(subset=['remark_clean'])
             df = df[df['remark_clean'] != ""]
 
         # --- BAGIAN FILTER (SIDEBAR) ---
         st.sidebar.header("🔍 Filter Data")
         
-        # Filter Status
         all_status = df['status'].unique().tolist() if 'status' in df.columns else []
         selected_status = st.sidebar.multiselect("Pilih Status", all_status, default=all_status)
 
-        # Filter Remark (Hasil yang sudah dipotong)
         all_remarks = sorted(df['remark_clean'].unique().tolist()) if 'remark_clean' in df.columns else []
         selected_remark = st.sidebar.multiselect("Pilih Remark (Prefix)", all_remarks, default=all_remarks)
 
-        # Menjalankan filter pada data
         df_filtered = df[
             (df['status'].isin(selected_status)) & 
             (df['remark_clean'].isin(selected_remark))
