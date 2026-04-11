@@ -5,7 +5,7 @@ import pytz
 import plotly.express as px
 
 # 1. Konfigurasi Tampilan Dashboard
-st.set_page_config(page_title="Dashboard Transaksi Minerapay & Orion", layout="wide")
+st.set_page_config(page_title="Dashboard Transaksi Withdraw Minerapay", layout="wide")
 
 # --- CUSTOM CSS UNTUK TAMPILAN ---
 st.markdown("""
