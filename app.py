@@ -43,7 +43,7 @@ with col_head:
 with col_img:
     # Menambahkan gambar di tengah
     # Ganti URL di bawah dengan link foto Anda sendiri
-    st.image("c:\Users\IT\Downloads\67c7a74b-9ac9-4b11-8def-f8d75abd2a12-removebg-preview.png", width=140)
+    st.image("", width=140)
 
 with col_time:
     tz_jakarta = pytz.timezone('Asia/Jakarta')
