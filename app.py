@@ -46,7 +46,7 @@ with col_head:
             <span style='color: #E1261C;'>Q</span><span style='color: #414042;'>R</span><span style='color: #0054A6;'>IS</span>
         </div>
     """, unsafe_allow_html=True)
-    st.title("Dashboard Cek Transaksi Qris Minerapay")
+    st.title("Dashboard Cek Transaksi Qris Withdraw Minerapay")
     st.markdown("Silakan upload file Excel hasil export untuk memulai analisis data.")
 
 with col_time:
