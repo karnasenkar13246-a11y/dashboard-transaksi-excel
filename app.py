@@ -57,47 +57,51 @@ with col_time:
 
 st.divider()
 
-# --- SIDEBAR: FILTER & CUSTOM COLOR ---
-st.sidebar.header("🔍 Filter Data")
+# --- SIDEBAR: FILTER & SEARCH ---
+st.sidebar.header("🔍 Filter & Pencarian")
 
-# Simpan filter di sidebar (akan diisi setelah upload)
-# Bagian Custom Warna diletakkan di bawah filter
+# Fitur Pencarian No Referensi
+search_ref = st.sidebar.text_input("Cari No. Referensi", placeholder="Ketik nomor referensi...")
+
 st.sidebar.divider()
-st.sidebar.header("🎨 Pengaturan Warna Diagram")
 
-# Pilihan warna untuk Status
+# Kotak Warna (Setting Visual)
+st.sidebar.header("🎨 Visual")
 col_success = st.sidebar.color_picker("Warna SUCCESS", "#28a745")
 col_pending = st.sidebar.color_picker("Warna PENDING", "#ffc107")
-col_failed  = st.sidebar.color_picker("Warna EXPIRED/FAILED", "#dc3545")
-
-# Pilihan tema untuk Revenue (Gradient)
-theme_revenue = st.sidebar.selectbox(
-    "Tema Warna Revenue",
-    ["Viridis", "Plasma", "Blues", "Greens", "Cividis", "Turbo"]
-)
+col_failed  = st.sidebar.color_picker("Warna EXPIRED", "#dc3545")
+theme_revenue = st.sidebar.selectbox("Tema Gradient", ["Viridis", "Plasma", "Blues", "Turbo"])
 
 # --- PROSES DATA ---
 uploaded_file = st.file_uploader("Upload File Excel (.xlsx)", type=["xlsx"])
 
 if uploaded_file:
     try:
+        # Load Data
         df = pd.read_excel(uploaded_file)
         
-        # Bersihkan Remark
+        # 1. Bersihkan Remark (Ambil sebelum ||)
         if 'remark' in df.columns:
             df['remark_clean'] = df['remark'].apply(lambda x: str(x).split('||')[0].strip() if '||' in str(x) else None)
             df = df.dropna(subset=['remark_clean'])
 
-        # Sidebar Filters Logic
+        # 2. Filter Multiselect di Sidebar
         all_status = df['status'].unique().tolist() if 'status' in df.columns else []
         selected_status = st.sidebar.multiselect("Pilih Status", all_status, default=all_status)
 
         all_remarks = sorted(df['remark_clean'].unique().tolist()) if 'remark_clean' in df.columns else []
         selected_remark = st.sidebar.multiselect("Pilih Remark", all_remarks, default=all_remarks)
 
-        df_filtered = df[(df['status'].isin(selected_status)) & (df['remark_clean'].isin(selected_remark))]
+        # 3. Logika Filter Gabungan (Status + Remark + Search Ref)
+        mask = (df['status'].isin(selected_status)) & (df['remark_clean'].isin(selected_remark))
+        
+        # Jika kolom pencarian diisi, filter berdasarkan No Referensi
+        if search_ref:
+            mask = mask & (df['reference_no'].astype(str).str.contains(search_ref, case=False, na=False))
 
-        # Kolom Numerik
+        df_filtered = df[mask].copy()
+
+        # Konversi Angka
         for c in ['amount', 'fee', 'revenue']:
             if c in df_filtered.columns:
                 df_filtered[c] = pd.to_numeric(df_filtered[c], errors='coerce').fillna(0)
@@ -111,48 +115,37 @@ if uploaded_file:
 
         st.divider()
 
-        # --- DIAGRAM DENGAN CUSTOM WARNA ---
+        # --- DIAGRAM ---
         st.subheader("📊 Analisis Visual")
         viz1, viz2 = st.columns(2)
 
         with viz1:
             if not df_filtered.empty:
-                # Mapping warna manual berdasarkan pilihan user
-                color_map = {
-                    "SUCCESS": col_success,
-                    "PENDING": col_pending,
-                    "EXPIRED": col_failed,
-                    "FAILED": col_failed
-                }
-                
-                fig_status = px.pie(
-                    df_filtered, 
-                    names='status', 
-                    hole=0.5,
-                    title="<b>Distribusi Status</b>",
-                    color='status',
-                    color_discrete_map=color_map # Menerapkan warna dari sidebar
-                )
+                color_map = {"SUCCESS": col_success, "PENDING": col_pending, "EXPIRED": col_failed, "FAILED": col_failed}
+                fig_status = px.pie(df_filtered, names='status', hole=0.5, title="Distribusi Status",
+                                   color='status', color_discrete_map=color_map)
                 st.plotly_chart(fig_status, use_container_width=True)
+            else:
+                st.warning("Data tidak ditemukan untuk kriteria tersebut.")
 
         with viz2:
             if not df_filtered.empty:
                 rev_data = df_filtered.groupby('remark_clean')['revenue'].sum().reset_index()
-                fig_rev = px.bar(
-                    rev_data, 
-                    x='remark_clean', 
-                    y='revenue',
-                    title="<b>Revenue per Remark</b>",
-                    color='revenue',
-                    color_continuous_scale=theme_revenue # Menerapkan tema gradient dari sidebar
-                )
+                fig_rev = px.bar(rev_data, x='remark_clean', y='revenue', title="Revenue per Remark",
+                                color='revenue', color_continuous_scale=theme_revenue)
                 st.plotly_chart(fig_rev, use_container_width=True)
 
         st.divider()
-        st.subheader("📋 Detail Data")
+        
+        # --- TABEL DETAIL ---
+        st.subheader("📋 Detail Data Terfilter")
         st.dataframe(df_filtered, use_container_width=True, hide_index=True)
 
+        # Tombol Download
+        csv = df_filtered.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Download Hasil Filter (CSV)", csv, "filter_transaksi.csv", "text/csv")
+
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Terjadi kesalahan: {e}")
 else:
-    st.info("💡 Silakan upload file untuk memulai.")
+    st.info("💡 Silakan upload file excel transaksi Anda.")
